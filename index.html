@@ -1,182 +1,270 @@
-<!-- xin chào người lạ, mình là anhduc.onlien | mình có tìm được file code noel này và fix lại, mình xin phép share mọi người ạ! -->
 <!DOCTYPE html>
-<html lang="VN">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOEL_V2</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #000000; font-family: 'Times New Roman', serif; }
-        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        
-        #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; pointer-events: none;
-            display: flex; flex-direction: column; 
-            align-items: center;
-            padding-top: 40px;
-            box-sizing: border-box;
-        }
-        
-        .ui-hidden {
-            opacity: 0;
-            pointer-events: none !important;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOEL ÁNH SÁNG</title>
 
-        #loader {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease-out;
-        }
-        .loader-text {
-            color: #d4af37; font-size: 14px; letter-spacing: 4px; margin-top: 20px;
-            text-transform: uppercase; font-weight: 100;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.2); 
-            border-top: 1px solid #d4af37; border-radius: 50%; 
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Times New Roman', serif;
+}
+#canvas-container {
+    width: 100vw;
+    height: 100vh;
+}
+#loader {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 100;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(255,215,150,.2);
+    border-top: 2px solid #ffd966;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-        h1 { 
-            color: #fceea7; font-size: 56px; margin: 0; font-weight: 400; 
-            letter-spacing: 6px; 
-            text-shadow: 0 0 50px rgba(252, 238, 167, 0.6); 
-            background: linear-gradient(to bottom, #fff, #eebb66);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-family: 'Cinzel', 'Times New Roman', serif;
-            opacity: 0.9;
-        }
+#ui-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+}
+.upload-wrapper {
+    pointer-events: auto;
+}
+.upload-btn {
+    border: 1px solid #d4af37;
+    color: #d4af37;
+    padding: 10px 24px;
+    background: rgba(0,0,0,.4);
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+#music-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 22px;
+    cursor: pointer;
+    color: #ffd966;
+    pointer-events: auto;
+}
+#file-input { display:none; }
+</style>
 
-        .upload-wrapper {
-            margin-top: 20px;
-            pointer-events: auto;
-            text-align: center;
-            transition: opacity 0.5s ease;
-        }
-        .upload-btn {
-            background: rgba(20, 20, 20, 0.6); 
-            border: 1px solid rgba(212, 175, 55, 0.4); 
-            color: #d4af37; 
-            padding: 10px 25px; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            font-size: 10px;
-            transition: all 0.4s;
-            display: inline-block;
-            backdrop-filter: blur(5px);
-        }
-        .upload-btn:hover { 
-            background: #d4af37; 
-            color: #000; 
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-        }
-        .hint-text {
-            color: rgba(212, 175, 55, 0.5);
-            font-size: 9px;
-            margin-top: 8px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        #file-input { display: none; }
-
-        #music-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            font-size: 22px;
-            cursor: pointer;
-            color: #d4af37;
-            user-select: none;
-            pointer-events: auto;
-        }
-    </style>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
-    </style>
-
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-            "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm"
-        }
-    }
-    </script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <div class="loader-text">Loading Holiday Magic</div>
+    <div style="color:#d4af37; margin-top:16px">Loading Christmas Magic...</div>
 </div>
 
 <div id="canvas-container"></div>
 
 <div id="ui-layer">
-    <h1></h1>
     <div class="upload-wrapper">
         <label class="upload-btn">
             Thêm ảnh
-            <input type="file" id="file-input" multiple accept="image/*">
+            <input id="file-input" type="file" accept="image/*" multiple>
         </label>
-        <div class="hint-text">Nhấn phím 'H' để ẩn các nút điều khiển</div>
     </div>
 </div>
 
-<!-- 🎵 NHẠC -->
+<div id="music-btn">🔊</div>
+
+<!-- 🎵 MUSIC -->
 <audio id="bg-music" loop>
     <source src="./in-love.mp3" type="audio/mpeg">
 </audio>
-<div id="music-btn">🔊</div>
 
 <script type="module">
-    import * as THREE from 'three';
-    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    /* ===== MUSIC CONTROL ===== */
-    const bgMusic = document.getElementById('bg-music');
-    const musicBtn = document.getElementById('music-btn');
-    let musicStarted = false;
+/* ===== MUSIC ===== */
+const bgMusic = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-btn');
+let started = false;
 
-    function startMusic() {
-        if (musicStarted) return;
-        musicStarted = true;
-        bgMusic.volume = 0;
-        bgMusic.play().then(() => {
-            let v = 0;
-            const fade = setInterval(() => {
-                v += 0.02;
-                bgMusic.volume = Math.min(v, 0.5);
-                if (v >= 0.5) clearInterval(fade);
-            }, 100);
-        }).catch(() => {});
+function startMusic(){
+    if(started) return;
+    started = true;
+    bgMusic.volume = 0;
+    bgMusic.play().then(()=>{
+        let v = 0;
+        const fade = setInterval(()=>{
+            v += 0.02;
+            bgMusic.volume = Math.min(v, 0.5);
+            if(v >= 0.5) clearInterval(fade);
+        },100);
+    }).catch(()=>{});
+}
+
+window.addEventListener('click', startMusic, { once:true });
+window.addEventListener('keydown', startMusic, { once:true });
+
+musicBtn.onclick = ()=>{
+    if(bgMusic.paused){
+        bgMusic.play();
+        musicBtn.textContent = "🔊";
+    }else{
+        bgMusic.pause();
+        musicBtn.textContent = "🔇";
     }
+};
 
-    window.addEventListener('click', startMusic, { once: true });
-    window.addEventListener('keydown', startMusic, { once: true });
+/* ===== THREE ===== */
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-    musicBtn.onclick = () => {
-        if (bgMusic.paused) {
-            bgMusic.play();
-            musicBtn.textContent = "🔊";
-        } else {
-            bgMusic.pause();
-            musicBtn.textContent = "🔇";
-        }
-    };
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1000);
+camera.position.z = 45;
 
-    /* ===== GIỮ NGUYÊN CODE THREE + LOGIC GỐC CỦA MÀY Ở DƯỚI ===== */
-    // (Phần ThreeJS + MediaPipe của mày giữ nguyên, không chỉnh)
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+container.appendChild(renderer.domElement);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(
+    new THREE.Vector2(innerWidth, innerHeight),
+    0.8, 0.4, 0.85
+));
+
+scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+/* ===== CHRISTMAS TREE ===== */
+const group = new THREE.Group();
+scene.add(group);
+
+// Trunk
+const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.6, 0.7, 4, 16),
+    new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
+);
+trunk.position.y = -5;
+group.add(trunk);
+
+// Leaves
+const greenMat = new THREE.MeshStandardMaterial({ color: 0x0f5c2e });
+
+const layers = [
+    { r:4, h:5, y:-2 },
+    { r:3, h:4, y:1.5 },
+    { r:2, h:3, y:4.5 }
+];
+
+layers.forEach(l=>{
+    const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(l.r, l.h, 32),
+        greenMat
+    );
+    cone.position.y = l.y;
+    group.add(cone);
+});
+
+// Star
+const star = new THREE.Mesh(
+    new THREE.OctahedronGeometry(1),
+    new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        emissive: 0xffd700,
+        emissiveIntensity: 1
+    })
+);
+star.position.y = 7;
+group.add(star);
+
+// Decorations
+const decoGeo = new THREE.SphereGeometry(0.3, 16, 16);
+const decoMat = new THREE.MeshStandardMaterial({
+    color: 0xff4d4d,
+    emissive: 0xff4d4d,
+    emissiveIntensity: 0.6
+});
+
+for(let i=0;i<120;i++){
+    const d = new THREE.Mesh(decoGeo, decoMat);
+    d.position.set(
+        (Math.random()-0.5)*6,
+        Math.random()*7 - 2,
+        (Math.random()-0.5)*6
+    );
+    group.add(d);
+}
+
+/* ===== IMAGE UPLOAD ===== */
+document.getElementById('file-input').addEventListener('change', e=>{
+    [...e.target.files].forEach(file=>{
+        const reader = new FileReader();
+        reader.onload = ev=>{
+            const tex = new THREE.TextureLoader().load(ev.target.result);
+            const img = new THREE.Mesh(
+                new THREE.PlaneGeometry(3,3),
+                new THREE.MeshBasicMaterial({ map: tex, transparent:true })
+            );
+            img.position.set(
+                (Math.random()-0.5)*10,
+                Math.random()*6,
+                (Math.random()-0.5)*10
+            );
+            group.add(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+/* ===== ANIMATE ===== */
+function animate(){
+    requestAnimationFrame(animate);
+    group.rotation.y += 0.002;
+    star.rotation.y += 0.05;
+    composer.render();
+}
+animate();
+
+/* ===== LOADER ===== */
+setTimeout(()=>{
+    document.getElementById('loader').remove();
+    startMusic();
+},800);
+
+window.addEventListener('resize', ()=>{
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
+});
 </script>
 
 </body>
