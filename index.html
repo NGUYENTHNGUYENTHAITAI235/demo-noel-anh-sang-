@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOEL V2</title>
+<title>NOEL ÁNH SÁNG</title>
 
 <style>
 body {
@@ -35,14 +35,14 @@ body {
     animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
 #ui-layer {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 10;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
     padding-top: 40px;
 }
 .upload-wrapper {
@@ -58,12 +58,12 @@ body {
     letter-spacing: 2px;
 }
 #music-btn {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
-    font-size: 18px;
-    color: #d4af37;
+    font-size: 22px;
     cursor: pointer;
+    color: #ffd966;
     pointer-events: auto;
 }
 #file-input { display:none; }
@@ -73,8 +73,7 @@ body {
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-    "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm"
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
   }
 }
 </script>
@@ -84,7 +83,7 @@ body {
 
 <div id="loader">
     <div class="spinner"></div>
-    <div style="color:#d4af37; margin-top:16px">Loading Holiday Magic</div>
+    <div style="color:#d4af37; margin-top:16px">Loading Christmas Magic...</div>
 </div>
 
 <div id="canvas-container"></div>
@@ -96,10 +95,11 @@ body {
             <input id="file-input" type="file" accept="image/*" multiple>
         </label>
     </div>
-    <div id="music-btn">🔊</div>
 </div>
 
-<!-- 🎵 NHẠC NỀN -->
+<div id="music-btn">🔊</div>
+
+<!-- 🎵 MUSIC -->
 <audio id="bg-music" loop>
     <source src="./in-love.mp3" type="audio/mpeg">
 </audio>
@@ -109,96 +109,138 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 
 /* ===== MUSIC ===== */
 const bgMusic = document.getElementById('bg-music');
 const musicBtn = document.getElementById('music-btn');
-let musicStarted = false;
+let started = false;
 
-function startMusic() {
-    if (musicStarted) return;
-    musicStarted = true;
+function startMusic(){
+    if(started) return;
+    started = true;
     bgMusic.volume = 0;
-    bgMusic.play().then(() => {
+    bgMusic.play().then(()=>{
         let v = 0;
-        const fade = setInterval(() => {
+        const fade = setInterval(()=>{
             v += 0.02;
             bgMusic.volume = Math.min(v, 0.5);
-            if (v >= 0.5) clearInterval(fade);
-        }, 100);
+            if(v >= 0.5) clearInterval(fade);
+        },100);
     }).catch(()=>{});
 }
+
 window.addEventListener('click', startMusic, { once:true });
 window.addEventListener('keydown', startMusic, { once:true });
 
-musicBtn.onclick = () => {
-    if (bgMusic.paused) {
+musicBtn.onclick = ()=>{
+    if(bgMusic.paused){
         bgMusic.play();
-        musicBtn.textContent = '🔊';
-    } else {
+        musicBtn.textContent = "🔊";
+    }else{
         bgMusic.pause();
-        musicBtn.textContent = '🔇';
+        musicBtn.textContent = "🔇";
     }
 };
 
-/* ===== THREE BASIC ===== */
-let scene, camera, renderer, composer;
+/* ===== THREE ===== */
 const container = document.getElementById('canvas-container');
-
-scene = new THREE.Scene();
+const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1000);
-camera.position.z = 50;
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1000);
+camera.position.z = 45;
 
-renderer = new THREE.WebGLRenderer({ antialias:true });
+const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setSize(innerWidth, innerHeight);
 container.appendChild(renderer.domElement);
 
-composer = new EffectComposer(renderer);
+const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new UnrealBloomPass(
     new THREE.Vector2(innerWidth, innerHeight),
-    0.6, 0.4, 0.85
+    0.8, 0.4, 0.85
 ));
 
-/* ===== OBJECTS ===== */
+scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+/* ===== CHRISTMAS TREE ===== */
 const group = new THREE.Group();
 scene.add(group);
 
-const geo = new THREE.BoxGeometry(1,1,1);
-const mat = new THREE.MeshStandardMaterial({ color:0xffd966 });
-for(let i=0;i<200;i++){
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(
-        (Math.random()-0.5)*15,
-        (Math.random()-0.5)*20,
-        (Math.random()-0.5)*15
-    );
-    group.add(m);
-}
+// Trunk
+const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.6, 0.7, 4, 16),
+    new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
+);
+trunk.position.y = -5;
+group.add(trunk);
 
-scene.add(new THREE.AmbientLight(0xffffff,0.8));
+// Leaves
+const greenMat = new THREE.MeshStandardMaterial({ color: 0x0f5c2e });
+
+const layers = [
+    { r:4, h:5, y:-2 },
+    { r:3, h:4, y:1.5 },
+    { r:2, h:3, y:4.5 }
+];
+
+layers.forEach(l=>{
+    const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(l.r, l.h, 32),
+        greenMat
+    );
+    cone.position.y = l.y;
+    group.add(cone);
+});
+
+// Star
+const star = new THREE.Mesh(
+    new THREE.OctahedronGeometry(1),
+    new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        emissive: 0xffd700,
+        emissiveIntensity: 1
+    })
+);
+star.position.y = 7;
+group.add(star);
+
+// Decorations
+const decoGeo = new THREE.SphereGeometry(0.3, 16, 16);
+const decoMat = new THREE.MeshStandardMaterial({
+    color: 0xff4d4d,
+    emissive: 0xff4d4d,
+    emissiveIntensity: 0.6
+});
+
+for(let i=0;i<120;i++){
+    const d = new THREE.Mesh(decoGeo, decoMat);
+    d.position.set(
+        (Math.random()-0.5)*6,
+        Math.random()*7 - 2,
+        (Math.random()-0.5)*6
+    );
+    group.add(d);
+}
 
 /* ===== IMAGE UPLOAD ===== */
 document.getElementById('file-input').addEventListener('change', e=>{
-    [...e.target.files].forEach(f=>{
+    [...e.target.files].forEach(file=>{
         const reader = new FileReader();
         reader.onload = ev=>{
             const tex = new THREE.TextureLoader().load(ev.target.result);
-            const p = new THREE.Mesh(
+            const img = new THREE.Mesh(
                 new THREE.PlaneGeometry(3,3),
-                new THREE.MeshBasicMaterial({ map: tex })
+                new THREE.MeshBasicMaterial({ map: tex, transparent:true })
             );
-            p.position.set(
+            img.position.set(
                 (Math.random()-0.5)*10,
-                (Math.random()-0.5)*10,
+                Math.random()*6,
                 (Math.random()-0.5)*10
             );
-            group.add(p);
+            group.add(img);
         };
-        reader.readAsDataURL(f);
+        reader.readAsDataURL(file);
     });
 });
 
@@ -206,6 +248,7 @@ document.getElementById('file-input').addEventListener('change', e=>{
 function animate(){
     requestAnimationFrame(animate);
     group.rotation.y += 0.002;
+    star.rotation.y += 0.05;
     composer.render();
 }
 animate();
@@ -216,11 +259,11 @@ setTimeout(()=>{
     startMusic();
 },800);
 
-window.addEventListener('resize',()=>{
+window.addEventListener('resize', ()=>{
     camera.aspect = innerWidth/innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth,innerHeight);
-    composer.setSize(innerWidth,innerHeight);
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
 });
 </script>
 
